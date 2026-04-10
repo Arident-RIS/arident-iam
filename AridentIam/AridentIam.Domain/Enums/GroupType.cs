@@ -1,0 +1,6 @@
+namespace AridentIam.Domain.Enums;
+
+public enum GroupType
+{
+    Static, Dynamic, System
+}

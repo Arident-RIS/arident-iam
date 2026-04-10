@@ -1,0 +1,6 @@
+@AridentIam.WebApi_HostAddress = http://localhost:5296
+
+GET {{AridentIam.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AridentIam.Application/AridentIam.Application.csproj" />
+  <Project Path="AridentIam.Domain/AridentIam.Domain.csproj" />
+  <Project Path="AridentIam.Infrastructure/AridentIam.Infrastructure.csproj" />
+  <Project Path="AridentIam.WebApi/AridentIam.WebApi.csproj" />
+</Solution>
