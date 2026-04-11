@@ -22,60 +22,75 @@ public sealed class ExceptionHandlingMiddleware(
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            await HandleAsync(context, ex);
+            await HandleAsync(context, exception);
         }
     }
 
     private async Task HandleAsync(HttpContext context, Exception exception)
     {
+        var correlationId = context.Items.TryGetValue(CorrelationIdMiddleware.ItemKey, out var value)
+            ? value?.ToString()
+            : null;
+
         var (statusCode, title) = exception switch
         {
-            NotFoundException          => (StatusCodes.Status404NotFound,            "Resource Not Found"),
-            ConflictException          => (StatusCodes.Status409Conflict,            "Conflict"),
-            ValidationException        => (StatusCodes.Status422UnprocessableEntity, "Validation Failed"),
-            DomainException            => (StatusCodes.Status400BadRequest,          "Domain Rule Violation"),
-            UnauthorizedAccessException=> (StatusCodes.Status403Forbidden,           "Forbidden"),
+            NotFoundException => (StatusCodes.Status404NotFound, "Resource Not Found"),
+            ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ValidationException => (StatusCodes.Status422UnprocessableEntity, "Validation Failed"),
+            DomainException => (StatusCodes.Status400BadRequest, "Domain Rule Violation"),
+            UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
             OperationCanceledException => (StatusCodes.Status499ClientClosedRequest, "Request Cancelled"),
-            _                          => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
         };
 
         if (statusCode >= 500)
         {
-            logger.LogError(exception,
-                "Unhandled exception [{ExceptionType}] on {Method} {Path}",
+            logger.LogError(
+                exception,
+                "Unhandled exception [{ExceptionType}] on {Method} {Path} with CorrelationId {CorrelationId}",
                 exception.GetType().Name,
                 context.Request.Method,
-                context.Request.Path);
+                context.Request.Path,
+                correlationId);
         }
         else
         {
-            logger.LogWarning(exception,
-                "Handled exception [{ExceptionType}] on {Method} {Path}",
+            logger.LogWarning(
+                exception,
+                "Handled exception [{ExceptionType}] on {Method} {Path} with CorrelationId {CorrelationId}",
                 exception.GetType().Name,
                 context.Request.Method,
-                context.Request.Path);
+                context.Request.Path,
+                correlationId);
         }
 
         var problemDetails = new ProblemDetails
         {
-            Status   = statusCode,
-            Title    = title,
-            Detail   = environment.IsDevelopment() ? exception.ToString() : exception.Message,
+            Status = statusCode,
+            Title = title,
+            Detail = environment.IsDevelopment()
+                ? exception.ToString()
+                : exception.Message,
             Instance = $"{context.Request.Method} {context.Request.Path}"
         };
+
+        if (!string.IsNullOrWhiteSpace(correlationId))
+        {
+            problemDetails.Extensions["correlationId"] = correlationId;
+        }
 
         if (exception is ValidationException validationException)
         {
             problemDetails.Extensions["errors"] = validationException.Errors
-                .GroupBy(e => e.PropertyName)
+                .GroupBy(x => x.PropertyName)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Select(e => e.ErrorMessage).ToArray());
+                    g => g.Select(x => x.ErrorMessage).ToArray());
         }
 
-        context.Response.StatusCode  = statusCode;
+        context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/problem+json";
 
         await context.Response.WriteAsync(

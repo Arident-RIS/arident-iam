@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AridentIam.Infrastructure.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
@@ -8,26 +9,46 @@ public sealed class AridentIamDbContextFactory : IDesignTimeDbContextFactory<Ari
 {
     public AridentIamDbContext CreateDbContext(string[] args)
     {
-        var basePath = Directory.GetCurrentDirectory();
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+        var possibleBasePaths = new[]
+        {
+            Directory.GetCurrentDirectory(),
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "AridentIam.WebApi"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "AridentIam.WebApi")
+        };
+
+        var basePath = possibleBasePaths
+            .Select(Path.GetFullPath)
+            .FirstOrDefault(Directory.Exists);
+
+        if (string.IsNullOrWhiteSpace(basePath))
+        {
+            throw new InvalidOperationException(
+                "Unable to determine the base path for locating WebApi configuration files.");
+        }
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(basePath)
-            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile("appsettings.json", optional: false)
             .AddJsonFile($"appsettings.{environment}.json", optional: true)
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var databaseSettings = configuration
+            .GetSection(DatabaseSettings.SectionName)
+            .Get<DatabaseSettings>()
+            ?? throw new InvalidOperationException(
+                $"Configuration section '{DatabaseSettings.SectionName}' is missing for design-time DbContext creation.");
 
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException(
-                "Database connection string 'DefaultConnection' was not found for design-time DbContext creation.");
-        }
+        var connectionString = DatabaseConnectionStringFactory.Build(databaseSettings);
 
         var optionsBuilder = new DbContextOptionsBuilder<AridentIamDbContext>();
-        optionsBuilder.UseSqlServer(connectionString);
+        optionsBuilder.UseSqlServer(connectionString, sqlOptions =>
+        {
+            sqlOptions.MigrationsAssembly(typeof(AridentIamDbContextFactory).Assembly.FullName);
+            sqlOptions.CommandTimeout(databaseSettings.CommandTimeoutSeconds);
+        });
 
         return new AridentIamDbContext(optionsBuilder.Options);
     }

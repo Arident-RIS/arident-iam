@@ -1,5 +1,6 @@
 using AridentIam.Application.Common.Interfaces;
 using AridentIam.Domain.Interfaces.Repositories;
+using AridentIam.Infrastructure.Configuration;
 using AridentIam.Infrastructure.Persistence.Context;
 using AridentIam.Infrastructure.Persistence.Repositories.Principals;
 using AridentIam.Infrastructure.Persistence.Repositories.Tenants;
@@ -9,7 +10,6 @@ using AridentIam.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace AridentIam.Infrastructure;
 
@@ -19,13 +19,16 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        services.Configure<DatabaseSettings>(
+            configuration.GetSection(DatabaseSettings.SectionName));
 
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException(
-                "Database connection string 'DefaultConnection' was not found.");
-        }
+        var databaseSettings = configuration
+            .GetSection(DatabaseSettings.SectionName)
+            .Get<DatabaseSettings>()
+            ?? throw new InvalidOperationException(
+                $"Configuration section '{DatabaseSettings.SectionName}' is missing.");
+
+        var connectionString = DatabaseConnectionStringFactory.Build(databaseSettings);
 
         services.AddDbContext<AridentIamDbContext>(options =>
         {
@@ -36,6 +39,7 @@ public static class DependencyInjection
                     maxRetryCount: 5,
                     maxRetryDelay: TimeSpan.FromSeconds(30),
                     errorNumbersToAdd: null);
+                sqlOptions.CommandTimeout(databaseSettings.CommandTimeoutSeconds);
             });
         });
 
@@ -44,13 +48,6 @@ public static class DependencyInjection
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-
-        services.AddHealthChecks()
-            .AddSqlServer(
-                connectionString,
-                name: "sqlserver",
-                failureStatus: HealthStatus.Unhealthy,
-                tags: ["database", "sqlserver"]);
 
         return services;
     }
