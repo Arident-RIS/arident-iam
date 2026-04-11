@@ -29,6 +29,19 @@ public sealed class TenantRepository(AridentIamDbContext dbContext) : ITenantRep
                 cancellationToken);
     }
 
+    public async Task<bool> ExistsByCodeAsync(
+        string code,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedCode = code.Trim();
+
+        return await dbContext.Tenants
+            .AsNoTracking()
+            .AnyAsync(
+                x => x.Code == normalizedCode,
+                cancellationToken);
+    }
+
     public async Task AddAsync(Tenant tenant, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);
