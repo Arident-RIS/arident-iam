@@ -13,7 +13,7 @@ public static class ApplicationBuilderExtensions
 
         app.UseSerilogRequestLogging();
 
-        if (app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Integration"))
         {
             app.UseSwagger();
             app.UseSwaggerUI();

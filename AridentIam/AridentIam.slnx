@@ -1,6 +1,9 @@
 <Solution>
+  <Project Path="AridentIam.Application.Tests/AridentIam.Application.Tests.csproj" Id="3743f6c6-a386-4bcc-9f2b-b58d4d2bdea3" />
   <Project Path="AridentIam.Application/AridentIam.Application.csproj" />
+  <Project Path="AridentIam.Domain.Tests/AridentIam.Domain.Tests.csproj" Id="4fa17cbc-81d1-4ebd-9791-08697b241320" />
   <Project Path="AridentIam.Domain/AridentIam.Domain.csproj" />
   <Project Path="AridentIam.Infrastructure/AridentIam.Infrastructure.csproj" />
+  <Project Path="AridentIam.WebApi.IntegrationTests/AridentIam.WebApi.IntegrationTests.csproj" Id="e4df5f7f-e6e8-419c-bf96-c1a3fc48b1ba" />
   <Project Path="AridentIam.WebApi/AridentIam.WebApi.csproj" />
 </Solution>
