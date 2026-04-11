@@ -66,6 +66,20 @@ try
 
     builder.Services.AddAuthorization();
 
+    var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    if (string.IsNullOrWhiteSpace(defaultConnection))
+    {
+        throw new InvalidOperationException(
+            "Database connection string 'DefaultConnection' was not found.");
+    }
+
+    builder.Services.AddHealthChecks()
+        .AddSqlServer(
+            connectionString: defaultConnection,
+            name: "sqlserver",
+            tags: new[] { "db", "sql", "sqlserver" });
+
     var app = builder.Build();
 
     app.UseSerilogRequestLogging();
