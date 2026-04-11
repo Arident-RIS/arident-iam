@@ -78,7 +78,7 @@ try
         .AddSqlServer(
             connectionString: defaultConnection,
             name: "sqlserver",
-            tags: new[] { "db", "sql", "sqlserver" });
+            tags: ["db", "sql", "sqlserver"]);
 
     var app = builder.Build();
 

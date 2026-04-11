@@ -1,5 +1,6 @@
 using AridentIam.Domain.Interfaces.Repositories;
 using AridentIam.Infrastructure.Persistence.Context;
+using AridentIam.Infrastructure.Persistence.Repositories.Principals;
 using AridentIam.Infrastructure.Persistence.Repositories.Tenants;
 using AridentIam.Infrastructure.Persistence.Repositories.Users;
 using AridentIam.Infrastructure.Persistence.UnitOfWork;
@@ -31,6 +32,7 @@ public static class DependencyInjection
             });
         });
 
+        services.AddScoped<IPrincipalRepository, PrincipalRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
