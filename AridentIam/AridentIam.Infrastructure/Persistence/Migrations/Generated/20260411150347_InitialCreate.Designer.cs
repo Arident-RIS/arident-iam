@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
 {
     [DbContext(typeof(AridentIamDbContext))]
-    [Migration("20260411140122_InitialCreate")]
+    [Migration("20260411150347_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -82,15 +82,10 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("UpdatedBy");
 
-                    b.Property<Guid?>("UserProfileUserExternalId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("PrincipalExternalId");
 
                     b.HasIndex("TenantExternalId")
                         .HasDatabaseName("IX_Principals_TenantExternalId");
-
-                    b.HasIndex("UserProfileUserExternalId");
 
                     b.HasIndex("TenantExternalId", "ExternalReference")
                         .IsUnique()
@@ -351,12 +346,6 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                         .HasForeignKey("TenantExternalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("AridentIam.Domain.Entities.Users.User", "UserProfile")
-                        .WithMany()
-                        .HasForeignKey("UserProfileUserExternalId");
-
-                    b.Navigation("UserProfile");
                 });
 
             modelBuilder.Entity("AridentIam.Domain.Entities.Tenants.TenantSetting", b =>
@@ -371,7 +360,7 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
             modelBuilder.Entity("AridentIam.Domain.Entities.Users.User", b =>
                 {
                     b.HasOne("AridentIam.Domain.Entities.Principals.Principal", null)
-                        .WithOne()
+                        .WithOne("UserProfile")
                         .HasForeignKey("AridentIam.Domain.Entities.Users.User", "PrincipalExternalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -381,6 +370,11 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                         .HasForeignKey("TenantExternalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AridentIam.Domain.Entities.Principals.Principal", b =>
+                {
+                    b.Navigation("UserProfile");
                 });
 
             modelBuilder.Entity("AridentIam.Domain.Entities.Tenants.Tenant", b =>

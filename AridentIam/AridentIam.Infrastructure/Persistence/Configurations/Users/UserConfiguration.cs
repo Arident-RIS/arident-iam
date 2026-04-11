@@ -1,5 +1,4 @@
-﻿using AridentIam.Domain.Entities.Principals;
-using AridentIam.Domain.Entities.Tenants;
+﻿using AridentIam.Domain.Entities.Tenants;
 using AridentIam.Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -106,15 +105,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(x => new { x.TenantExternalId, x.Username })
             .IsUnique()
             .HasDatabaseName("UX_Users_TenantExternalId_Username");
-
-        builder.HasIndex(x => x.PrincipalExternalId)
-            .IsUnique()
-            .HasDatabaseName("UX_Users_PrincipalExternalId");
-
-        builder.HasOne<Tenant>()
-            .WithMany()
-            .HasForeignKey(x => x.TenantExternalId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => x.PrincipalExternalId)
             .IsUnique()

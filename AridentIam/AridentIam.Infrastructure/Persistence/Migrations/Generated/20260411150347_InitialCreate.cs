@@ -34,6 +34,33 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                 });
 
             migrationBuilder.CreateTable(
+                name: "Principals",
+                columns: table => new
+                {
+                    PrincipalExternalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TenantExternalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PrincipalType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DisplayName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    ExternalReference = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    LifecycleState = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Principals", x => x.PrincipalExternalId);
+                    table.ForeignKey(
+                        name: "FK_Principals_Tenants_TenantExternalId",
+                        column: x => x.TenantExternalId,
+                        principalTable: "Tenants",
+                        principalColumn: "TenantExternalId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TenantSettings",
                 columns: table => new
                 {
@@ -57,34 +84,6 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                         principalTable: "Tenants",
                         principalColumn: "TenantExternalId",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Principals",
-                columns: table => new
-                {
-                    PrincipalExternalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TenantExternalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PrincipalType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    DisplayName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    ExternalReference = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    LifecycleState = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    UserProfileUserExternalId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    CreatedBy = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    UpdatedBy = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Principals", x => x.PrincipalExternalId);
-                    table.ForeignKey(
-                        name: "FK_Principals_Tenants_TenantExternalId",
-                        column: x => x.TenantExternalId,
-                        principalTable: "Tenants",
-                        principalColumn: "TenantExternalId",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -130,11 +129,6 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                 name: "IX_Principals_TenantExternalId",
                 table: "Principals",
                 column: "TenantExternalId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Principals_UserProfileUserExternalId",
-                table: "Principals",
-                column: "UserProfileUserExternalId");
 
             migrationBuilder.CreateIndex(
                 name: "UX_Principals_TenantExternalId_ExternalReference",
@@ -187,41 +181,22 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                 table: "Users",
                 columns: new[] { "TenantExternalId", "Username" },
                 unique: true);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Principals_Users_UserProfileUserExternalId",
-                table: "Principals",
-                column: "UserProfileUserExternalId",
-                principalTable: "Users",
-                principalColumn: "UserExternalId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Principals_Tenants_TenantExternalId",
-                table: "Principals");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Users_Tenants_TenantExternalId",
-                table: "Users");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Principals_Users_UserProfileUserExternalId",
-                table: "Principals");
-
             migrationBuilder.DropTable(
                 name: "TenantSettings");
-
-            migrationBuilder.DropTable(
-                name: "Tenants");
 
             migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Principals");
+
+            migrationBuilder.DropTable(
+                name: "Tenants");
         }
     }
 }
