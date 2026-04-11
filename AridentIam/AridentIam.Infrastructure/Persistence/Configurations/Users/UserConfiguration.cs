@@ -116,9 +116,13 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey(x => x.TenantExternalId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<Principal>()
-            .WithOne()
-            .HasForeignKey<User>(x => x.PrincipalExternalId)
+        builder.HasIndex(x => x.PrincipalExternalId)
+            .IsUnique()
+            .HasDatabaseName("UX_Users_PrincipalExternalId");
+
+        builder.HasOne<Tenant>()
+            .WithMany()
+            .HasForeignKey(x => x.TenantExternalId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
