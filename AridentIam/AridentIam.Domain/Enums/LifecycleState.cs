@@ -2,5 +2,5 @@ namespace AridentIam.Domain.Enums;
 
 public enum LifecycleState
 {
-    Provisioning, Active, Disabled, Deprovisioned
+    Provisioning, Active, Inactive, Disabled, Deprovisioned, Deleted
 }

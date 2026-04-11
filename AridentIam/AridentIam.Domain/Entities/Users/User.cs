@@ -1,16 +1,17 @@
 using AridentIam.Domain.Common;
 using AridentIam.Domain.Enums;
-using AridentIam.Domain.Events;
 using AridentIam.Domain.ValueObjects;
 
 namespace AridentIam.Domain.Entities.Users;
 
-public sealed class User : AggregateRoot
+public sealed class User : AuditableEntity
 {
     private User() { }
+
     public Guid UserExternalId { get; private set; }
     public Guid PrincipalExternalId { get; private set; }
     public Guid TenantExternalId { get; private set; }
+
     public string FirstName { get; private set; } = null!;
     public string LastName { get; private set; } = null!;
     public string DisplayName { get; private set; } = null!;
@@ -19,88 +20,101 @@ public sealed class User : AggregateRoot
     public string PhoneNumber { get; private set; } = null!;
     public EmploymentType EmploymentType { get; private set; } = EmploymentType.Unknown;
     public string? JobTitle { get; private set; }
-    public UserStatus Status { get; private set; }
+
     public bool IsEmailVerified { get; private set; }
     public bool IsPhoneVerified { get; private set; }
-    public bool IsLocked { get; private set; }
-    public DateTimeOffset? LockoutEndAt { get; private set; }
-    public DateTimeOffset? LastLoginAt { get; private set; }
-    public string? PasswordHash { get; private set; }
-    public string? PasswordSalt { get; private set; }
 
-    public static User Create(Guid tenantExternalId, string firstName, string lastName, string displayName, string email, string username, string phoneNumber, string createdBy)
+    public static User Create(
+        Guid principalExternalId,
+        Guid tenantExternalId,
+        string firstName,
+        string lastName,
+        string displayName,
+        string email,
+        string username,
+        string phoneNumber,
+        string? jobTitle,
+        EmploymentType employmentType,
+        string createdBy)
     {
         var personName = new PersonName(firstName, lastName);
-        var emailValue = new EmailAddress(email);
+        var emailAddress = new EmailAddress(email);
         var usernameValue = new Username(username);
         var phoneValue = new PhoneNumber(phoneNumber);
 
         var entity = new User
         {
             UserExternalId = Guid.NewGuid(),
-            PrincipalExternalId = Guid.NewGuid(),
+            PrincipalExternalId = Guard.AgainstDefault(principalExternalId, nameof(principalExternalId)),
             TenantExternalId = Guard.AgainstDefault(tenantExternalId, nameof(tenantExternalId)),
             FirstName = personName.FirstName,
             LastName = personName.LastName,
-            DisplayName = Guard.AgainstNullOrWhiteSpace(displayName, nameof(displayName)),
-            Email = emailValue.Value,
+            DisplayName = Guard.AgainstMaxLength(displayName, 200, nameof(displayName)),
+            Email = emailAddress.Value,
             Username = usernameValue.Value,
             PhoneNumber = phoneValue.Value,
-            Status = UserStatus.PendingActivation
+            JobTitle = string.IsNullOrWhiteSpace(jobTitle) ? null : Guard.AgainstMaxLength(jobTitle, 150, nameof(jobTitle)),
+            EmploymentType = Guard.AgainstInvalidEnum(employmentType, nameof(employmentType)),
+            IsEmailVerified = false,
+            IsPhoneVerified = false
         };
 
         entity.SetCreationAudit(createdBy);
-        entity.RaiseDomainEvent(new UserCreatedDomainEvent(entity.UserExternalId, entity.TenantExternalId));
         return entity;
     }
 
-    public void SetPasswordHash(string passwordHash, string passwordSalt, string updatedBy)
-    {
-        PasswordHash = Guard.AgainstNullOrWhiteSpace(passwordHash, nameof(passwordHash));
-        PasswordSalt = Guard.AgainstNullOrWhiteSpace(passwordSalt, nameof(passwordSalt));
-        Touch(updatedBy);
-    }
-
-    public void Activate(string updatedBy) { Status = UserStatus.Active; Touch(updatedBy); }
-    public void Deactivate(string updatedBy) { Status = UserStatus.Inactive; Touch(updatedBy); }
-
-    public void VerifyEmail(string updatedBy)
-    {
-        IsEmailVerified = true;
-        Touch(updatedBy);
-        RaiseDomainEvent(new UserEmailVerifiedDomainEvent(UserExternalId));
-    }
-
-    public void VerifyPhone(string updatedBy) { IsPhoneVerified = true; Touch(updatedBy); }
-
-    public void Lock(DateTimeOffset? lockoutEndAt, string updatedBy)
-    {
-        IsLocked = true;
-        LockoutEndAt = lockoutEndAt;
-        Status = UserStatus.Locked;
-        Touch(updatedBy);
-    }
-
-    public void Unlock(string updatedBy)
-    {
-        IsLocked = false;
-        LockoutEndAt = null;
-        Status = UserStatus.Active;
-        Touch(updatedBy);
-    }
-
-    public void UpdateProfile(string firstName, string lastName, string displayName, string phoneNumber, string? jobTitle, EmploymentType employmentType, string updatedBy)
+    public void UpdateProfile(
+        string firstName,
+        string lastName,
+        string displayName,
+        string phoneNumber,
+        string? jobTitle,
+        EmploymentType employmentType,
+        string updatedBy)
     {
         var personName = new PersonName(firstName, lastName);
         var phoneValue = new PhoneNumber(phoneNumber);
+
         FirstName = personName.FirstName;
         LastName = personName.LastName;
-        DisplayName = Guard.AgainstNullOrWhiteSpace(displayName, nameof(displayName));
+        DisplayName = Guard.AgainstMaxLength(displayName, 200, nameof(displayName));
         PhoneNumber = phoneValue.Value;
-        JobTitle = string.IsNullOrWhiteSpace(jobTitle) ? null : jobTitle.Trim();
-        EmploymentType = employmentType;
+        JobTitle = string.IsNullOrWhiteSpace(jobTitle) ? null : Guard.AgainstMaxLength(jobTitle, 150, nameof(jobTitle));
+        EmploymentType = Guard.AgainstInvalidEnum(employmentType, nameof(employmentType));
+
         Touch(updatedBy);
     }
 
-    public void MarkLogin(DateTimeOffset loginAt, string updatedBy) { LastLoginAt = loginAt; Touch(updatedBy); }
+    public void ChangeEmail(string email, string updatedBy)
+    {
+        var emailAddress = new EmailAddress(email);
+        Email = emailAddress.Value;
+        IsEmailVerified = false;
+        Touch(updatedBy);
+    }
+
+    public void ChangeUsername(string username, string updatedBy)
+    {
+        var usernameValue = new Username(username);
+        Username = usernameValue.Value;
+        Touch(updatedBy);
+    }
+
+    public void VerifyEmail(string updatedBy)
+    {
+        if (IsEmailVerified)
+            throw new DomainException("Email is already verified.");
+
+        IsEmailVerified = true;
+        Touch(updatedBy);
+    }
+
+    public void VerifyPhone(string updatedBy)
+    {
+        if (IsPhoneVerified)
+            throw new DomainException("Phone number is already verified.");
+
+        IsPhoneVerified = true;
+        Touch(updatedBy);
+    }
 }

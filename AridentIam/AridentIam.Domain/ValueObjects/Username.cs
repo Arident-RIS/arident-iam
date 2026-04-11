@@ -5,14 +5,18 @@ namespace AridentIam.Domain.ValueObjects;
 
 public sealed class Username : ValueObject
 {
-    private static readonly Regex Pattern = new("^[a-zA-Z0-9._-]{3,50}$", RegexOptions.Compiled);
+    private static readonly Regex Pattern =
+        new("^[a-zA-Z0-9._-]{3,50}$", RegexOptions.Compiled);
 
     public string Value { get; }
 
     public Username(string value)
     {
-        var normalized = Guard.AgainstNullOrWhiteSpace(value, nameof(value));
-        if (!Pattern.IsMatch(normalized)) throw new DomainException("Username format is invalid.");
+        var normalized = Guard.AgainstNullOrWhiteSpace(value, nameof(value)).Trim();
+
+        if (!Pattern.IsMatch(normalized))
+            throw new DomainException("Username format is invalid.");
+
         Value = normalized;
     }
 

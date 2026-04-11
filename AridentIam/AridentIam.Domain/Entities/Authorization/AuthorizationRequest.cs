@@ -14,7 +14,7 @@ public sealed class AuthorizationRequest : AggregateRoot
     public Guid ResourceTypeExternalId { get; private set; }
     public Guid? ResourceInstanceReferenceExternalId { get; private set; }
     public string RequestContextJson { get; private set; } = null!;
-    public DateTime RequestedAtUtc { get; private set; }
+    public DateTimeOffset RequestedAt { get; private set; }
 
     public static AuthorizationRequest Create(Guid tenantExternalId, string correlationId, Guid principalExternalId, Guid? sessionExternalId, string actionKey, Guid resourceTypeExternalId, Guid? resourceInstanceReferenceExternalId, string requestContextJson, string createdBy)
     {
@@ -29,7 +29,7 @@ public sealed class AuthorizationRequest : AggregateRoot
             ResourceTypeExternalId = Guard.AgainstDefault(resourceTypeExternalId, nameof(resourceTypeExternalId)),
             ResourceInstanceReferenceExternalId = resourceInstanceReferenceExternalId,
             RequestContextJson = Guard.AgainstNullOrWhiteSpace(requestContextJson, nameof(requestContextJson)),
-            RequestedAtUtc = DateTime.UtcNow
+            RequestedAt = DateTimeOffset.UtcNow
         };
         entity.SetCreationAudit(createdBy);
         return entity;

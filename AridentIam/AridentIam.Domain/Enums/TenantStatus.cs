@@ -2,5 +2,5 @@ namespace AridentIam.Domain.Enums;
 
 public enum TenantStatus
 {
-    Active, Suspended, Archived
+    Active, Suspended, Archived, Deleted
 }

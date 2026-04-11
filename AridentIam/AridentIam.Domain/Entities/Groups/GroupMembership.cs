@@ -10,12 +10,12 @@ public sealed class GroupMembership : AuditableEntity
     public Guid PrincipalExternalId { get; private set; }
     public Guid TenantExternalId { get; private set; }
     public string MembershipSource { get; private set; } = null!;
-    public DateTime? EffectiveFromUtc { get; private set; }
-    public DateTime? EffectiveToUtc { get; private set; }
+    public DateTimeOffset? EffectiveFrom { get; private set; }
+    public DateTimeOffset? EffectiveTo { get; private set; }
 
-    public static GroupMembership Create(Guid groupExternalId, Guid principalExternalId, Guid tenantExternalId, string membershipSource, DateTime? effectiveFromUtc, DateTime? effectiveToUtc, string createdBy)
+    public static GroupMembership Create(Guid groupExternalId, Guid principalExternalId, Guid tenantExternalId, string membershipSource, DateTimeOffset? effectiveFrom, DateTimeOffset? effectiveTo, string createdBy)
     {
-        Guard.AgainstInvalidRange(effectiveFromUtc, effectiveToUtc, nameof(effectiveToUtc));
+        Guard.AgainstInvalidRange(effectiveFrom, effectiveTo, nameof(effectiveTo));
         var entity = new GroupMembership
         {
             GroupMembershipExternalId = Guid.NewGuid(),
@@ -23,8 +23,8 @@ public sealed class GroupMembership : AuditableEntity
             PrincipalExternalId = Guard.AgainstDefault(principalExternalId, nameof(principalExternalId)),
             TenantExternalId = Guard.AgainstDefault(tenantExternalId, nameof(tenantExternalId)),
             MembershipSource = Guard.AgainstNullOrWhiteSpace(membershipSource, nameof(membershipSource)),
-            EffectiveFromUtc = effectiveFromUtc,
-            EffectiveToUtc = effectiveToUtc
+            EffectiveFrom = effectiveFrom,
+            EffectiveTo = effectiveTo
         };
         entity.SetCreationAudit(createdBy);
         return entity;

@@ -12,7 +12,7 @@ public sealed class AuthorizationDecision : AggregateRoot
     public DecisionType Decision { get; private set; }
     public string DecisionReasonCode { get; private set; } = null!;
     public Guid? MatchedPolicyVersionExternalId { get; private set; }
-    public DateTime EvaluatedAtUtc { get; private set; }
+    public DateTimeOffset EvaluatedAt { get; private set; }
     public long LatencyMs { get; private set; }
     public bool CacheHit { get; private set; }
     public string? DecisionTraceReference { get; private set; }
@@ -27,7 +27,7 @@ public sealed class AuthorizationDecision : AggregateRoot
             Decision = decision,
             DecisionReasonCode = Guard.AgainstNullOrWhiteSpace(decisionReasonCode, nameof(decisionReasonCode)),
             MatchedPolicyVersionExternalId = matchedPolicyVersionExternalId,
-            EvaluatedAtUtc = DateTime.UtcNow,
+            EvaluatedAt = DateTimeOffset.UtcNow,
             LatencyMs = latencyMs,
             CacheHit = cacheHit,
             DecisionTraceReference = string.IsNullOrWhiteSpace(decisionTraceReference) ? null : decisionTraceReference.Trim()

@@ -9,8 +9,8 @@ public sealed class PersonName : ValueObject
 
     public PersonName(string firstName, string lastName)
     {
-        FirstName = Guard.AgainstNullOrWhiteSpace(firstName, nameof(firstName));
-        LastName = Guard.AgainstNullOrWhiteSpace(lastName, nameof(lastName));
+        FirstName = Guard.AgainstMaxLength(firstName, 100, nameof(firstName));
+        LastName = Guard.AgainstMaxLength(lastName, 100, nameof(lastName));
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
