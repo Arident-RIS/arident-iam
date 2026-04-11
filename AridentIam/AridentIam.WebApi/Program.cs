@@ -12,26 +12,29 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.UseSerilog((context, loggerConfiguration) =>
+    _ = builder.Host.UseSerilog((context, loggerConfiguration) =>
         loggerConfiguration.ReadFrom.Configuration(context.Configuration));
 
-    builder.Services.AddApplication();
-    builder.Services.AddInfrastructure(builder.Configuration);
-    builder.Services.AddWebApiServices(builder.Configuration);
+    _ = builder.Services.AddApplication();
+    _ = builder.Services.AddInfrastructure(builder.Configuration);
+    _ = builder.Services.AddWebApiServices(builder.Configuration);
 
     var app = builder.Build();
 
-    await app.Services.InitializeDatabaseAsync();
+    if (app.Environment.IsDevelopment())
+    {
+        await app.Services.InitializeDatabaseAsync();
+    }
 
-    app.UseWebApiPipeline();
+    _ = app.UseWebApiPipeline();
 
     Log.Information("AridentIAM API starting up");
 
     await app.RunAsync();
 }
-catch (Microsoft.Extensions.Hosting.HostAbortedException)
+catch (HostAbortedException)
 {
-    // This can happen during EF Core design-time operations such as migrations.
+    // Expected during some EF Core design-time operations such as migrations.
 }
 catch (Exception ex)
 {

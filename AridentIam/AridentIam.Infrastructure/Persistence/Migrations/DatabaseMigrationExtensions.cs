@@ -11,7 +11,8 @@ public static class DatabaseMigrationExtensions
     {
         using var scope = services.CreateScope();
 
-        var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
+        var logger = scope.ServiceProvider
+            .GetRequiredService<ILoggerFactory>()
             .CreateLogger("DatabaseMigration");
 
         var dbContext = scope.ServiceProvider.GetRequiredService<AridentIamDbContext>();
@@ -24,7 +25,7 @@ public static class DatabaseMigrationExtensions
         if (!canConnect)
         {
             throw new InvalidOperationException(
-                "Database migrations completed, but the application could not verify connectivity to the database.");
+                "Database migrations completed, but connectivity verification failed.");
         }
 
         logger.LogInformation("Database migrations applied successfully.");

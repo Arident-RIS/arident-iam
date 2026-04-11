@@ -18,7 +18,8 @@ public static class DatabaseSeeder
     {
         using var scope = services.CreateScope();
 
-        var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
+        var logger = scope.ServiceProvider
+            .GetRequiredService<ILoggerFactory>()
             .CreateLogger("DatabaseSeeder");
 
         var dbContext = scope.ServiceProvider.GetRequiredService<AridentIamDbContext>();
