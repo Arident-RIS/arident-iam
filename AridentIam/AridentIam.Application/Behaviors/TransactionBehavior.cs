@@ -1,3 +1,4 @@
+using AridentIam.Application.Common.CQRS;
 using AridentIam.Domain.Interfaces.Repositories;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -10,10 +11,15 @@ public sealed class TransactionBehavior<TRequest, TResponse>(
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
     {
-        if (IsQueryRequest())
-            return await next(cancellationToken);
+        if (request is IQuery<TResponse>)
+        {
+            return await next();
+        }
 
         var requestName = typeof(TRequest).Name;
 
@@ -21,26 +27,27 @@ public sealed class TransactionBehavior<TRequest, TResponse>(
         {
             await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            var response = await next(cancellationToken);
+            var response = await next();
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
             await unitOfWork.CommitTransactionAsync(cancellationToken);
 
-            logger.LogInformation("Transaction committed for {RequestName}", requestName);
+            logger.LogInformation(
+                "Transaction committed for request {RequestName}",
+                requestName);
 
             return response;
         }
         catch (Exception ex)
         {
             await unitOfWork.RollbackTransactionAsync(cancellationToken);
-            logger.LogError(ex, "Transaction rolled back for {RequestName}", requestName);
+
+            logger.LogError(
+                ex,
+                "Transaction rolled back for request {RequestName}",
+                requestName);
+
             throw;
         }
-    }
-
-    private static bool IsQueryRequest()
-    {
-        var name = typeof(TRequest).Name;
-        return name.EndsWith("Query", StringComparison.Ordinal);
     }
 }

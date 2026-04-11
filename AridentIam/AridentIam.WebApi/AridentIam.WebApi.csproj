@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AridentIam.Application\AridentIam.Application.csproj" />
-    <ProjectReference Include="..\AridentIam.Domain\AridentIam.Domain.csproj" />
     <ProjectReference Include="..\AridentIam.Infrastructure\AridentIam.Infrastructure.csproj" />
   </ItemGroup>
 

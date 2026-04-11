@@ -2,7 +2,13 @@ using AridentIam.Domain.Entities.Tenants;
 
 namespace AridentIam.Domain.Interfaces.Repositories;
 
-public interface ITenantRepository : IRepository<Tenant>
+public interface ITenantRepository
 {
-    Task<Tenant?> GetByCodeAsync(string code, CancellationToken cancellationToken = default);
+    Task<Tenant?> GetByExternalIdAsync(Guid tenantExternalId, CancellationToken cancellationToken = default);
+
+    Task<bool> ExistsByExternalIdAsync(Guid tenantExternalId, CancellationToken cancellationToken = default);
+
+    Task AddAsync(Tenant tenant, CancellationToken cancellationToken = default);
+
+    void Update(Tenant tenant);
 }
