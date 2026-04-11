@@ -77,5 +77,12 @@ public sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 
         _ = builder.HasIndex(x => x.Name)
             .HasDatabaseName("IX_Tenants_Name");
+
+        // Map the private backing field _settings for the TenantSetting collection.
+        _ = builder.HasMany<TenantSetting>("_settings")
+            .WithOne()
+            .HasForeignKey(x => x.TenantExternalId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

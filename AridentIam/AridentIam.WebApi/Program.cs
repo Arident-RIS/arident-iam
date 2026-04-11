@@ -1,10 +1,13 @@
 using AridentIam.Application;
 using AridentIam.Infrastructure;
+using AridentIam.WebApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
+using System.Threading.RateLimiting;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -17,15 +20,22 @@ try
     builder.Host.UseSerilog((ctx, cfg) =>
         cfg.ReadFrom.Configuration(ctx.Configuration));
 
+    builder.Services.AddHttpContextAccessor();
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddProblemDetails();
 
     builder.Services.AddSwaggerGen(c =>
     {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "AridentIAM API", Version = "v1" });
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title       = "AridentIAM API",
+            Version     = "v1",
+            Description = "Identity and Access Management API"
+        });
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             Name = "Authorization",
@@ -66,21 +76,59 @@ try
 
     builder.Services.AddAuthorization();
 
-    var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+    // ── CORS ─────────────────────────────────────────────────────────────────
+    const string CorsPolicyName = "DefaultCorsPolicy";
+    var allowedOrigins = builder.Configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() ?? [];
 
-    if (string.IsNullOrWhiteSpace(defaultConnection))
+    builder.Services.AddCors(options =>
     {
-        throw new InvalidOperationException(
-            "Database connection string 'DefaultConnection' was not found.");
-    }
+        options.AddPolicy(CorsPolicyName, policy =>
+        {
+            if (allowedOrigins.Length > 0)
+                policy.WithOrigins(allowedOrigins);
+            else
+                policy.AllowAnyOrigin(); // development fallback
 
-    builder.Services.AddHealthChecks()
-        .AddSqlServer(
-            connectionString: defaultConnection,
-            name: "sqlserver",
-            tags: ["db", "sql", "sqlserver"]);
+            policy.AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .WithExposedHeaders("X-Correlation-Id");
+        });
+    });
+
+    // ── Rate Limiting ─────────────────────────────────────────────────────────
+    var rl = builder.Configuration.GetSection("RateLimiting");
+
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.AddFixedWindowLimiter("fixed", limiterOptions =>
+        {
+            limiterOptions.PermitLimit          = rl.GetValue("PermitLimit", 200);
+            limiterOptions.Window               = TimeSpan.FromSeconds(rl.GetValue("WindowSeconds", 60));
+            limiterOptions.QueueLimit           = rl.GetValue("QueueLimit", 10);
+            limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        });
+
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+        options.OnRejected = async (context, token) =>
+        {
+            context.HttpContext.Response.StatusCode  = StatusCodes.Status429TooManyRequests;
+            context.HttpContext.Response.ContentType = "application/problem+json";
+            await context.HttpContext.Response.WriteAsJsonAsync(new
+            {
+                title  = "Too Many Requests",
+                status = 429,
+                detail = "Rate limit exceeded. Please retry after a short delay."
+            }, token);
+        };
+    });
 
     var app = builder.Build();
+
+    // ── Exception handling (outermost) ────────────────────────────────────────
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
 
     app.UseSerilogRequestLogging();
 
@@ -90,16 +138,34 @@ try
         app.UseSwaggerUI();
     }
 
+    // ── Security headers ──────────────────────────────────────────────────────
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["X-Frame-Options"]        = "DENY";
+        context.Response.Headers["X-XSS-Protection"]       = "1; mode=block";
+        context.Response.Headers["Referrer-Policy"]        = "strict-origin-when-cross-origin";
+        context.Response.Headers["Permissions-Policy"]     = "geolocation=(), microphone=()";
+
+        if (!app.Environment.IsDevelopment())
+            context.Response.Headers["Strict-Transport-Security"] =
+                "max-age=31536000; includeSubDomains";
+
+        await next();
+    });
+
     app.UseHttpsRedirection();
+    app.UseCors(CorsPolicyName);
+    app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();
 
-    app.MapControllers();
+    app.MapControllers().RequireRateLimiting("fixed");
 
     app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
     {
         ResponseWriter = HealthChecks.UI.Client.UIResponseWriter.WriteHealthCheckUIResponse
-    });
+    }).AllowAnonymous().RequireRateLimiting("fixed");
 
     Log.Information("AridentIAM API starting up");
     await app.RunAsync();

@@ -76,10 +76,9 @@ public sealed class PrincipalRepository(AridentIamDbContext dbContext) : IPrinci
         string email,
         CancellationToken cancellationToken = default)
     {
-        var normalizedEmail = email.Trim();
+        var normalizedEmail = email.Trim().ToLowerInvariant();
 
         return await dbContext.Principals
-            .Include(x => x.UserProfile)
             .AnyAsync(
                 x => x.TenantExternalId == tenantExternalId &&
                      x.PrincipalType == PrincipalType.User &&
@@ -96,7 +95,6 @@ public sealed class PrincipalRepository(AridentIamDbContext dbContext) : IPrinci
         var normalizedUsername = username.Trim();
 
         return await dbContext.Principals
-            .Include(x => x.UserProfile)
             .AnyAsync(
                 x => x.TenantExternalId == tenantExternalId &&
                      x.PrincipalType == PrincipalType.User &&

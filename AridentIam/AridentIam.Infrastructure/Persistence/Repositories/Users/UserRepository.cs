@@ -23,7 +23,7 @@ public sealed class UserRepository(AridentIamDbContext dbContext) : IUserReposit
         string email,
         CancellationToken cancellationToken = default)
     {
-        var normalizedEmail = email.Trim();
+        var normalizedEmail = email.Trim().ToLowerInvariant();
 
         return await dbContext.Users
             .AsNoTracking()
@@ -53,7 +53,7 @@ public sealed class UserRepository(AridentIamDbContext dbContext) : IUserReposit
         string email,
         CancellationToken cancellationToken = default)
     {
-        var normalizedEmail = email.Trim();
+        var normalizedEmail = email.Trim().ToLowerInvariant();
 
         return await dbContext.Users
             .AsNoTracking()

@@ -1,19 +1,19 @@
-﻿using AridentIam.Application.Common.Exceptions;
+﻿using AridentIam.Application.Common.CQRS;
+using AridentIam.Application.Common.Exceptions;
+using AridentIam.Application.Common.Interfaces;
 using AridentIam.Domain.Entities.Principals;
 using AridentIam.Domain.Enums;
 using AridentIam.Domain.Interfaces.Repositories;
-using MediatR;
 
 namespace AridentIam.Application.Features.Users.Commands.CreateUser;
 
 public sealed class CreateUserCommandHandler(
     ITenantRepository tenantRepository,
     IPrincipalRepository principalRepository,
-    IUserRepository userRepository)
-    : IRequestHandler<CreateUserCommand, CreateUserResponse>
+    IUserRepository userRepository,
+    ICurrentUserService currentUser)
+    : ICommandHandler<CreateUserCommand, CreateUserResponse>
 {
-    private const string SystemActor = "system";
-
     public async Task<CreateUserResponse> Handle(
         CreateUserCommand request,
         CancellationToken cancellationToken)
@@ -50,12 +50,14 @@ public sealed class CreateUserCommandHandler(
                 $"A user with username '{request.Username}' already exists in this tenant.");
         }
 
+        var actor = currentUser.ActorIdentifier;
+
         var principal = Principal.Create(
             tenantExternalId: request.TenantExternalId,
             principalType: PrincipalType.User,
             displayName: request.DisplayName,
             externalReference: null,
-            createdBy: SystemActor);
+            createdBy: actor);
 
         principal.AttachUserProfile(
             firstName: request.FirstName,
@@ -65,7 +67,7 @@ public sealed class CreateUserCommandHandler(
             phoneNumber: request.PhoneNumber,
             jobTitle: request.JobTitle,
             employmentType: request.EmploymentType,
-            createdBy: SystemActor);
+            createdBy: actor);
 
         await principalRepository.AddAsync(principal, cancellationToken);
 

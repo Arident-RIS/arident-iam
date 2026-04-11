@@ -1,14 +1,14 @@
-﻿using AridentIam.Application.Common.Exceptions;
+﻿using AridentIam.Application.Common.CQRS;
+using AridentIam.Application.Common.Exceptions;
 using AridentIam.Application.Features.Users.DTOs;
 using AridentIam.Application.Features.Users.Mappings;
 using AridentIam.Domain.Interfaces.Repositories;
-using MediatR;
 
 namespace AridentIam.Application.Features.Users.Queries.GetUserByExternalId;
 
 public sealed class GetUserByExternalIdQueryHandler(
     IUserRepository userRepository)
-    : IRequestHandler<GetUserByExternalIdQuery, UserDto>
+    : IQueryHandler<GetUserByExternalIdQuery, UserDto>
 {
     public async Task<UserDto> Handle(
         GetUserByExternalIdQuery request,

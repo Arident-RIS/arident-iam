@@ -18,7 +18,6 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(assembly);
-        services.AddAutoMapper(cfg => cfg.AddMaps(assembly));
 
         return services;
     }
