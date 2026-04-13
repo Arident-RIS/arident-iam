@@ -1,4 +1,5 @@
 using AridentIam.Domain.Common;
+using AridentIam.Domain.Enums;
 
 namespace AridentIam.Domain.Entities.Organizations;
 
@@ -14,7 +15,7 @@ public sealed class OrgUnit : AggregateRoot
     public string Name { get; private set; } = null!;
     public string Path { get; private set; } = null!;
     public int Depth { get; private set; }
-    public bool IsActive { get; private set; }
+    public RecordStatus Status { get; private set; }
 
     public static OrgUnit Create(Guid tenantExternalId, Guid orgSchemaExternalId, Guid orgUnitTypeExternalId, Guid? parentOrganizationUnitExternalId, string code, string name, string path, int depth, string createdBy)
     {
@@ -29,7 +30,7 @@ public sealed class OrgUnit : AggregateRoot
             Name = Guard.AgainstNullOrWhiteSpace(name, nameof(name)),
             Path = Guard.AgainstNullOrWhiteSpace(path, nameof(path)),
             Depth = depth,
-            IsActive = true
+            Status = RecordStatus.Active
         };
         entity.SetCreationAudit(createdBy);
         return entity;

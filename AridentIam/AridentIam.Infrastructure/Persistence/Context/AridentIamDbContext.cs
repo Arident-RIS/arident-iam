@@ -1,4 +1,5 @@
 using AridentIam.Domain.Common;
+using AridentIam.Domain.Entities.Organizations;
 using AridentIam.Domain.Entities.Principals;
 using AridentIam.Domain.Entities.Tenants;
 using AridentIam.Domain.Entities.Users;
@@ -28,6 +29,9 @@ public sealed class AridentIamDbContext : DbContext
     public DbSet<TenantSetting> TenantSettings => Set<TenantSetting>();
     public DbSet<Principal> Principals => Set<Principal>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<OrgSchema> OrgSchemas => Set<OrgSchema>();
+    public DbSet<OrgUnitType> OrgUnitTypes => Set<OrgUnitType>();
+    public DbSet<OrgUnit> OrgUnits => Set<OrgUnit>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
