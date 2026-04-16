@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
 {
     [DbContext(typeof(AridentIamDbContext))]
-    [Migration("20260411150347_InitialCreate")]
+    [Migration("20260414020636_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,200 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("AridentIam.Domain.Entities.Organizations.OrgSchema", b =>
+                {
+                    b.Property<Guid>("OrgSchemaExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OrgSchemaExternalId");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("Description");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDefault");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("Name");
+
+                    b.Property<Guid>("TenantExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TenantExternalId");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("UpdatedBy");
+
+                    b.HasKey("OrgSchemaExternalId");
+
+                    b.HasIndex("TenantExternalId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("UX_OrgSchemas_TenantExternalId_Name");
+
+                    b.ToTable("OrgSchemas", (string)null);
+                });
+
+            modelBuilder.Entity("AridentIam.Domain.Entities.Organizations.OrgUnit", b =>
+                {
+                    b.Property<Guid>("OrganizationUnitExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OrganizationUnitExternalId");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("Code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<int>("Depth")
+                        .HasColumnType("int")
+                        .HasColumnName("Depth");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("Name");
+
+                    b.Property<Guid>("OrgSchemaExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OrgSchemaExternalId");
+
+                    b.Property<Guid>("OrgUnitTypeExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OrgUnitTypeExternalId");
+
+                    b.Property<Guid?>("ParentOrganizationUnitExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ParentOrganizationUnitExternalId");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("Path");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Status");
+
+                    b.Property<Guid>("TenantExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TenantExternalId");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("UpdatedBy");
+
+                    b.HasKey("OrganizationUnitExternalId");
+
+                    b.HasIndex("OrgSchemaExternalId");
+
+                    b.HasIndex("OrgUnitTypeExternalId");
+
+                    b.HasIndex("ParentOrganizationUnitExternalId");
+
+                    b.HasIndex("TenantExternalId", "OrgSchemaExternalId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("UX_OrgUnits_TenantExternalId_OrgSchemaExternalId_Code");
+
+                    b.ToTable("OrgUnits", (string)null);
+                });
+
+            modelBuilder.Entity("AridentIam.Domain.Entities.Organizations.OrgUnitType", b =>
+                {
+                    b.Property<Guid>("OrgUnitTypeExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OrgUnitTypeExternalId");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("Code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<int>("HierarchyLevel")
+                        .HasColumnType("int")
+                        .HasColumnName("HierarchyLevel");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("Name");
+
+                    b.Property<Guid>("OrgSchemaExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OrgSchemaExternalId");
+
+                    b.Property<Guid>("TenantExternalId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TenantExternalId");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("UpdatedAtUtc");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("UpdatedBy");
+
+                    b.HasKey("OrgUnitTypeExternalId");
+
+                    b.HasIndex("OrgSchemaExternalId");
+
+                    b.HasIndex("TenantExternalId", "OrgSchemaExternalId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("UX_OrgUnitTypes_TenantExternalId_OrgSchemaExternalId_Code");
+
+                    b.ToTable("OrgUnitTypes", (string)null);
+                });
 
             modelBuilder.Entity("AridentIam.Domain.Entities.Principals.Principal", b =>
                 {
@@ -82,10 +276,15 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("UpdatedBy");
 
+                    b.Property<Guid?>("UserProfileUserExternalId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("PrincipalExternalId");
 
                     b.HasIndex("TenantExternalId")
                         .HasDatabaseName("IX_Principals_TenantExternalId");
+
+                    b.HasIndex("UserProfileUserExternalId");
 
                     b.HasIndex("TenantExternalId", "ExternalReference")
                         .IsUnique()
@@ -339,6 +538,56 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("AridentIam.Domain.Entities.Organizations.OrgSchema", b =>
+                {
+                    b.HasOne("AridentIam.Domain.Entities.Tenants.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantExternalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AridentIam.Domain.Entities.Organizations.OrgUnit", b =>
+                {
+                    b.HasOne("AridentIam.Domain.Entities.Organizations.OrgSchema", null)
+                        .WithMany()
+                        .HasForeignKey("OrgSchemaExternalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AridentIam.Domain.Entities.Organizations.OrgUnitType", null)
+                        .WithMany()
+                        .HasForeignKey("OrgUnitTypeExternalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AridentIam.Domain.Entities.Organizations.OrgUnit", null)
+                        .WithMany()
+                        .HasForeignKey("ParentOrganizationUnitExternalId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AridentIam.Domain.Entities.Tenants.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantExternalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AridentIam.Domain.Entities.Organizations.OrgUnitType", b =>
+                {
+                    b.HasOne("AridentIam.Domain.Entities.Organizations.OrgSchema", null)
+                        .WithMany()
+                        .HasForeignKey("OrgSchemaExternalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AridentIam.Domain.Entities.Tenants.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantExternalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AridentIam.Domain.Entities.Principals.Principal", b =>
                 {
                     b.HasOne("AridentIam.Domain.Entities.Tenants.Tenant", null)
@@ -346,6 +595,12 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                         .HasForeignKey("TenantExternalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("AridentIam.Domain.Entities.Users.User", "UserProfile")
+                        .WithMany()
+                        .HasForeignKey("UserProfileUserExternalId");
+
+                    b.Navigation("UserProfile");
                 });
 
             modelBuilder.Entity("AridentIam.Domain.Entities.Tenants.TenantSetting", b =>
@@ -360,7 +615,7 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
             modelBuilder.Entity("AridentIam.Domain.Entities.Users.User", b =>
                 {
                     b.HasOne("AridentIam.Domain.Entities.Principals.Principal", null)
-                        .WithOne("UserProfile")
+                        .WithOne()
                         .HasForeignKey("AridentIam.Domain.Entities.Users.User", "PrincipalExternalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -370,11 +625,6 @@ namespace AridentIam.Infrastructure.Persistence.Migrations.Generated
                         .HasForeignKey("TenantExternalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("AridentIam.Domain.Entities.Principals.Principal", b =>
-                {
-                    b.Navigation("UserProfile");
                 });
 
             modelBuilder.Entity("AridentIam.Domain.Entities.Tenants.Tenant", b =>

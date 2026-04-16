@@ -1,4 +1,5 @@
-﻿using AridentIam.Domain.Entities.Tenants;
+﻿using AridentIam.Domain.Entities.Principals;
+using AridentIam.Domain.Entities.Tenants;
 using AridentIam.Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -113,6 +114,11 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasOne<Tenant>()
             .WithMany()
             .HasForeignKey(x => x.TenantExternalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Principal>()
+            .WithOne()
+            .HasForeignKey<User>(x => x.PrincipalExternalId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

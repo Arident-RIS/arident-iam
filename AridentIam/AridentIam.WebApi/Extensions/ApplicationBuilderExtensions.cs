@@ -13,7 +13,9 @@ public static class ApplicationBuilderExtensions
 
         app.UseSerilogRequestLogging();
 
-        if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Integration"))
+        if (app.Environment.IsDevelopment() || 
+            app.Environment.IsEnvironment("Integration") || 
+            app.Environment.IsEnvironment("Local"))
         {
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -30,7 +32,8 @@ public static class ApplicationBuilderExtensions
 
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
-            ResponseWriter = HealthChecks.UI.Client.UIResponseWriter.WriteHealthCheckUIResponse
+            ResponseWriter = HealthChecks.UI.Client.UIResponseWriter.WriteHealthCheckUIResponse,
+            AllowCachingResponses = false
         })
         .AllowAnonymous()
         .RequireRateLimiting("fixed");

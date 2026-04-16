@@ -43,4 +43,8 @@
     <PackageReference Include="System.Text.Json" Version="8.0.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Persistence\Migrations\Generated\" />
+  </ItemGroup>
+
 </Project>

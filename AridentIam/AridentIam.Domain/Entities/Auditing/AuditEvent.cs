@@ -21,7 +21,19 @@ public sealed class AuditEvent : BaseEntity
     public string? PayloadJson { get; private set; }
     public string CreatedBy { get; private set; } = null!;
 
-    public static AuditEvent Create(Guid tenantExternalId, string eventType, string eventCategory, Guid? actorPrincipalExternalId, string targetType, Guid? targetId, AuditOutcome outcome, string? reasonCode, string? ipAddress, string? correlationId, string? payloadJson, string createdBy)
+    public static AuditEvent Create(
+        Guid tenantExternalId,
+        string eventType,
+        string eventCategory,
+        string targetType,
+        AuditOutcome outcome,
+        Guid? actorPrincipalExternalId = null,
+        Guid? targetId = null,
+        string? reasonCode = null,
+        string? ipAddress = null,
+        string? correlationId = null,
+        string? payloadJson = null,
+        string? createdBy = null)
     {
         return new AuditEvent
         {

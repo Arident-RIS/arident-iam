@@ -21,7 +21,7 @@ try
 
     var app = builder.Build();
 
-    if (app.Environment.IsDevelopment())
+    if (!app.Environment.IsProduction())
     {
         await app.Services.InitializeDatabaseAsync();
     }

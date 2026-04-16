@@ -54,3 +54,4 @@ TestResult.xml
 nunit-*.xml
 /AridentIam/.vs
 /AridentIam/.cr
+/AridentIam/AridentIam.WebApi/appsettings.Local.json
