@@ -14,13 +14,14 @@ public sealed class GetUserByExternalIdQueryHandler(
         GetUserByExternalIdQuery request,
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByExternalIdAsync(
+        var user = await userRepository.GetByTenantAndExternalIdAsync(
+            request.TenantExternalId,
             request.UserExternalId,
             cancellationToken);
 
         return user is null
             ? throw new NotFoundException(
-                $"User with ExternalId '{request.UserExternalId}' was not found.")
+                $"User with ExternalId '{request.UserExternalId}' was not found in tenant '{request.TenantExternalId}'.")
             : user.ToDto();
     }
 }

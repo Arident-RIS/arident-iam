@@ -18,6 +18,19 @@ public sealed class UserRepository(AridentIamDbContext dbContext) : IUserReposit
                 cancellationToken);
     }
 
+    public async Task<User?> GetByTenantAndExternalIdAsync(
+        Guid tenantExternalId,
+        Guid userExternalId,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x => x.TenantExternalId == tenantExternalId &&
+                        x.UserExternalId == userExternalId,
+                cancellationToken);
+    }
+
     public async Task<User?> GetByEmailAsync(
         Guid tenantExternalId,
         string email,
@@ -29,7 +42,7 @@ public sealed class UserRepository(AridentIamDbContext dbContext) : IUserReposit
             .AsNoTracking()
             .FirstOrDefaultAsync(
                 x => x.TenantExternalId == tenantExternalId &&
-                     x.Email == normalizedEmail,
+                        x.Email == normalizedEmail,
                 cancellationToken);
     }
 
@@ -44,7 +57,7 @@ public sealed class UserRepository(AridentIamDbContext dbContext) : IUserReposit
             .AsNoTracking()
             .FirstOrDefaultAsync(
                 x => x.TenantExternalId == tenantExternalId &&
-                     x.Username == normalizedUsername,
+                        x.Username == normalizedUsername,
                 cancellationToken);
     }
 
@@ -59,7 +72,7 @@ public sealed class UserRepository(AridentIamDbContext dbContext) : IUserReposit
             .AsNoTracking()
             .AnyAsync(
                 x => x.TenantExternalId == tenantExternalId &&
-                     x.Email == normalizedEmail,
+                        x.Email == normalizedEmail,
                 cancellationToken);
     }
 
@@ -74,7 +87,7 @@ public sealed class UserRepository(AridentIamDbContext dbContext) : IUserReposit
             .AsNoTracking()
             .AnyAsync(
                 x => x.TenantExternalId == tenantExternalId &&
-                     x.Username == normalizedUsername,
+                        x.Username == normalizedUsername,
                 cancellationToken);
     }
 

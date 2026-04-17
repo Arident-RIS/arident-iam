@@ -41,14 +41,14 @@ public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCom
             .WithMessage("Username is required.")
             .MinimumLength(3)
             .WithMessage("Username must be at least 3 characters long.")
-            .MaximumLength(100)
-            .WithMessage("Username must not exceed 100 characters.");
+            .MaximumLength(50)
+            .WithMessage("Username must not exceed 50 characters.");
 
         RuleFor(x => x.PhoneNumber)
             .NotEmpty()
             .WithMessage("Phone number is required.")
-            .MaximumLength(50)
-            .WithMessage("Phone number must not exceed 50 characters.");
+            .MaximumLength(20)
+            .WithMessage("Phone number must not exceed 20 characters.");
 
         RuleFor(x => x.JobTitle)
             .MaximumLength(150)

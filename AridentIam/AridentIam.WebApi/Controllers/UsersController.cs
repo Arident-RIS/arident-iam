@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AridentIam.WebApi.Controllers;
 
 [ApiController]
-[Route("api/v1/users")]
+[Route("api/v1/tenants/{tenantExternalId:guid}/users")]
 [Produces("application/json")]
 public sealed class UsersController(IMediator mediator) : ControllerBase
 {
@@ -22,11 +22,12 @@ public sealed class UsersController(IMediator mediator) : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> CreateUser(
+        [FromRoute] Guid tenantExternalId,
         [FromBody] CreateUserRequest request,
         CancellationToken cancellationToken)
     {
         var command = new CreateUserCommand(
-            TenantExternalId: request.TenantExternalId,
+            TenantExternalId: tenantExternalId,
             FirstName: request.FirstName,
             LastName: request.LastName,
             DisplayName: request.DisplayName,
@@ -40,21 +41,29 @@ public sealed class UsersController(IMediator mediator) : ControllerBase
 
         return CreatedAtAction(
             actionName: nameof(GetUserByExternalId),
-            routeValues: new { userExternalId = result.UserExternalId },
+            routeValues: new
+            {
+                tenantExternalId = result.TenantExternalId,
+                userExternalId = result.UserExternalId
+            },
             value: result);
     }
 
     /// <summary>
-    /// Returns a user by external identifier.
+    /// Returns a user by external identifier within the specified tenant.
     /// </summary>
     [HttpGet("{userExternalId:guid}")]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserByExternalId(
-        Guid userExternalId,
+        [FromRoute] Guid tenantExternalId,
+        [FromRoute] Guid userExternalId,
         CancellationToken cancellationToken)
     {
-        var query = new GetUserByExternalIdQuery(userExternalId);
+        var query = new GetUserByExternalIdQuery(
+            TenantExternalId: tenantExternalId,
+            UserExternalId: userExternalId);
+
         var result = await mediator.Send(query, cancellationToken);
 
         return Ok(result);

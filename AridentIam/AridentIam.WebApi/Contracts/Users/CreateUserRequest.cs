@@ -6,7 +6,6 @@ namespace AridentIam.WebApi.Contracts.Users;
 /// Request body for creating a user within a tenant.
 /// </summary>
 public sealed record CreateUserRequest(
-    Guid TenantExternalId,
     string FirstName,
     string LastName,
     string DisplayName,

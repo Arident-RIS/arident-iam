@@ -6,6 +6,11 @@ public interface IUserRepository
 {
     Task<User?> GetByExternalIdAsync(Guid userExternalId, CancellationToken cancellationToken = default);
 
+    Task<User?> GetByTenantAndExternalIdAsync(
+        Guid tenantExternalId,
+        Guid userExternalId,
+        CancellationToken cancellationToken = default);
+
     Task<User?> GetByEmailAsync(Guid tenantExternalId, string email, CancellationToken cancellationToken = default);
 
     Task<User?> GetByUsernameAsync(Guid tenantExternalId, string username, CancellationToken cancellationToken = default);
